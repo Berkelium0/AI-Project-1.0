@@ -1,7 +1,7 @@
 import sys, requests, pathlib, json
 
 if len(sys.argv) != 2:
-    print('Usage: verify.py path/to/your/example-solutions')
+    print('Usage: verify.py my-example-solutions')
     sys.exit()
 
 example_solutions_dir = pathlib.Path(sys.argv[1])
