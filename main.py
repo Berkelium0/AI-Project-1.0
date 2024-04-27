@@ -1,33 +1,36 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-
-def visualize_map(data):
-    print(data)
-    cave_map = [[0 for x in range(18)] for y in range(12)]
-    for i, line in enumerate(data):
-        for j, tile in enumerate(line):
-            if tile == 'S':
-                cave_map[i][j] = 15
-            elif tile == 'P':
-                cave_map[i][j] = 10
-            elif tile == ' ':
-                cave_map[i][j] = 5
-            elif tile == 'X':
-                cave_map[i][j] = 0
-
-    h = np.array(cave_map)
-    plt.imshow(h, interpolation='none')
-    plt.show()
+# import numpy as np
+# import matplotlib.pyplot as plt
+# def visualize_map(data):
+#     print(data)
+#     cave_map = [[0 for x in range(18)] for y in range(12)]
+#     for i, line in enumerate(data):
+#         for j, tile in enumerate(line):
+#             if tile == 'S':
+#                 cave_map[i][j] = 15
+#             elif tile == 'P':
+#                 cave_map[i][j] = 10
+#             elif tile == ' ':
+#                 cave_map[i][j] = 5
+#             elif tile == 'X':
+#                 cave_map[i][j] = 0
+#
+#     h = np.array(cave_map)
+#     plt.imshow(h, interpolation='none')
+#     plt.show()
 
 
 def create_map(data):
+    portal_coor = {}
+    portal_num = 0
     cave_map = [[0 for x in range(18)] for y in range(12)]
     for i, line in enumerate(data):
         for j, tile in enumerate(line):
             cave_map[i][j] = tile
-
-    return cave_map
+            if tile == "P":
+                portal_coor[f"portal_{portal_num}_row"] = i
+                portal_coor[f"portal_{portal_num}_col"] = j
+                portal_num += 1
+    return cave_map, portal_coor
 
 
 def find_start(cave_map):
@@ -69,11 +72,23 @@ def get_neighbors(cave_map, i, j):
     }
 
 
-def move(map, dir, cc):
+def teleport(cc, pc):
+    if cc["row"] == pc["portal_0_row"] and cc["col"] == pc["portal_0_col"]:
+        cc["row"] = pc["portal_1_row"]
+        cc["col"] = pc["portal_1_col"]
+    elif cc["row"] == pc["portal_1_row"] and cc["col"] == pc["portal_1_col"]:
+        cc["row"] = pc["portal_0_row"]
+        cc["col"] = pc["portal_0_col"]
+    return cc
+
+def move(map, dir, cc, pc):
     if dir == "N":
         try:
             next_cell = map[cc["row"] - 1][cc["col"]]
-            if next_cell != "X":
+            if next_cell == "P":
+                cc["row"] -= 1
+                cc = teleport(cc, pc)
+            elif next_cell != "X":
                 map[cc["row"] - 1][cc["col"]] = "O"
                 cc["row"] -= 1
         except:
@@ -81,7 +96,10 @@ def move(map, dir, cc):
     elif dir == "E":
         try:
             next_cell = map[cc["row"]][cc["col"] + 1]
-            if next_cell != "X":
+            if next_cell == "P":
+                cc["col"] += 1
+                cc = teleport(cc, pc)
+            elif next_cell != "X":
                 map[cc["row"]][cc["col"] + 1] = "O"
                 cc["col"] += 1
         except:
@@ -89,7 +107,10 @@ def move(map, dir, cc):
     elif dir == "S":
         try:
             next_cell = map[cc["row"] + 1][cc["col"]]
-            if next_cell != "X":
+            if next_cell == "P":
+                cc["row"] += 1
+                cc = teleport(cc, pc)
+            elif next_cell != "X":
                 map[cc["row"] + 1][cc["col"]] = "O"
                 cc["row"] += 1
         except:
@@ -97,7 +118,10 @@ def move(map, dir, cc):
     elif dir == "W":
         try:
             next_cell = map[cc["row"]][cc["col"] - 1]
-            if next_cell != "X":
+            if next_cell == "P":
+                cc["col"] -= 1
+                cc = teleport(cc, pc)
+            elif next_cell != "X":
                 map[cc["row"]][cc["col"] - 1] = "O"
                 cc["col"] -= 1
         except:
@@ -118,26 +142,27 @@ def check_cave(cave_map):
 def check_plan(data):
     plan = data[1]
 
-    cave_map = create_map(data[2:])
+    cave_map, portal_coor = create_map(data[2:])
 
     current_cell = find_start(cave_map)
 
     for dir in plan:
-        cave_map, current_cell = move(cave_map, dir, current_cell)
+        cave_map, current_cell = move(cave_map, dir, current_cell, portal_coor)
 
     result = check_cave(cave_map)
+
     return result
 
 
 def find_plan(data):
-    cave_map = create_map(data[1:])
+    cave_map, portal_coor = create_map(data[1:])
     current_cell = find_start(cave_map)
 
     neighbors = get_neighbors(cave_map, current_cell["row"], current_cell["col"])
 
 
 raw_data = {}
-for letter in 'a':
+for letter in 'ab':
     for number in range(20):
         path = f"example-problems/problem_{letter}_{number:02d}.txt"
         with open(path) as fp:
