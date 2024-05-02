@@ -136,35 +136,6 @@ def check_cave(cave_map):
     return coordinates
 
 
-def check_plan(data):
-    plan = data[1]
-
-    cave_map, portal_coor = create_map(data[2:])
-
-    current_cell = find_start(cave_map)
-    if type(current_cell) == dict:
-        for direction in plan:
-            cave_map, current_cell = move(cave_map, direction, current_cell, portal_coor)
-
-        res = check_cave(cave_map)
-        return res
-    elif type(current_cell) == list:
-        res = set([])
-        for possible_start in current_cell:
-            x = possible_start.split(",")
-            possible_current_cell = {"row": int(x[0]), "col": int(x[1])}
-            temp_cave_map = [x[:] for x in cave_map]
-            temp_cave_map[possible_current_cell["row"]][possible_current_cell["col"]] = "S"
-            for direction in plan:
-                temp_cave_map, possible_current_cell = move(temp_cave_map, direction, possible_current_cell,
-                                                            portal_coor)
-
-            blank_cells = check_cave(temp_cave_map)
-            for cells in blank_cells:
-                res.add(cells)
-        return res
-
-
 def find_direction(dirty_cell, current_cell, portal_coor):
     if current_cell == (portal_coor["portal_0_row"], portal_coor["portal_0_col"]):
         current_cell = portal_coor["portal_1_row"], portal_coor["portal_1_col"]
@@ -180,7 +151,6 @@ def find_direction(dirty_cell, current_cell, portal_coor):
         dy = 0
     else:
         dx = 0
-    print(dx, dy)
     if dx > 0:
         return "S"
     elif dy > 0:
@@ -209,57 +179,103 @@ def dfs(cave_map, current_cell, dirty_cell, portal_coor):
         neighbors = [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)]
         for r, c in neighbors:
             if 0 <= r < len(cave_map) and 0 <= c < len(cave_map[0]) and cave_map[r][c] != "X" and not visited[r][c]:
-                # if cave_map[r][c] == "P":
-                #     if (r, c) == (portal_coor["portal_0_row"], portal_coor["portal_0_col"]):
-                #         visited[r][c] = True
-                #         r, c = portal_coor["portal_1_row"], portal_coor["portal_1_col"]
-                #     elif (r, c) == (portal_coor["portal_1_row"], portal_coor["portal_1_col"]):
-                #         visited[r][c] = True
-                #         r, c = portal_coor["portal_0_row"], portal_coor["portal_0_col"]
                 stack.append((r, c, path + [(r, c)]))
     return None
 
 
-def find_plan(data):
-    cave_map, portal_coor = create_map(data[1:])
+def check_plan(data=None, plan=None, cave_map=None, portal_coor=None):
+    if data:
+        plan = data[1]
+        cave_map, portal_coor = create_map(data[2:])
+    current_cell = find_start(cave_map)
+    if type(current_cell) == dict:
+        for direction in plan:
+            cave_map, current_cell = move(cave_map, direction, current_cell, portal_coor)
+
+        res = check_cave(cave_map)
+        if data:
+            return res
+        else:
+            return res, current_cell
+    elif type(current_cell) == list:
+        res = set([])
+        for possible_start in current_cell:
+            x = possible_start.split(",")
+            possible_current_cell = {"row": int(x[0]), "col": int(x[1])}
+            temp_cave_map = [x[:] for x in cave_map]
+            temp_cave_map[possible_current_cell["row"]][possible_current_cell["col"]] = "S"
+            for direction in plan:
+                temp_cave_map, possible_current_cell = move(temp_cave_map, direction, possible_current_cell,
+                                                            portal_coor)
+
+            blank_cells = check_cave(temp_cave_map)
+            for cells in blank_cells:
+                res.add(cells)
+        return res
+
+
+def find_plan(data=None, cave_map=None, portal_coor=None, current_cell=None, plan=None):
+    if data:
+        cave_map, portal_coor = create_map(data[1:])
     if not portal_coor:
         portal_coor = {'portal_0_row': -1, 'portal_0_col': -1, 'portal_1_row': -1, 'portal_1_col': -1}
-    print(portal_coor)
-    current_cell = find_start(cave_map)
-    plan = ""
-    res = check_cave(cave_map)
-    while res:
-        neighbors = get_neighbors(cave_map, current_cell)
+    if not current_cell:
+        current_cell = find_start(cave_map)
 
-        next_move = ""
-        for key, value in neighbors.items():
-            if value == " ":
-                next_move = key
+    if type(current_cell) == dict:
+        if data:
+            plan = ""
+        res = check_cave(cave_map)
+        while res:
+            neighbors = get_neighbors(cave_map, current_cell)
 
-        if next_move == "":
-            x = res[0].split(",")
-            dirty_cell = {
-                "row": int(x[0]),
-                "col": int(x[1])
-            }
-            dfs_res = [(current_cell["row"], current_cell["col"])]
-            dfs_res += dfs(cave_map, current_cell, dirty_cell, portal_coor)
-            for i in range(len(dfs_res) - 1):
-                plan += find_direction(dfs_res[i + 1], dfs_res[i], portal_coor)
-            current_cell = dirty_cell
-            res = check_cave(cave_map)
+            next_move = ""
+            for key, value in neighbors.items():
+                if value == " ":
+                    next_move = key
 
-        else:
+            if next_move == "":
+                x = res[0].split(",")
+                dirty_cell = {
+                    "row": int(x[0]),
+                    "col": int(x[1])
+                }
+                dfs_res = [(current_cell["row"], current_cell["col"])]
+                dfs_res += dfs(cave_map, current_cell, dirty_cell, portal_coor)
+                for i in range(len(dfs_res) - 1):
+                    plan += find_direction(dfs_res[i + 1], dfs_res[i], portal_coor)
+                current_cell = dirty_cell
+                res = check_cave(cave_map)
 
-            plan += next_move
-            cave_map, current_cell = move(cave_map, next_move, current_cell, portal_coor, "plan")
-            res = check_cave(cave_map)
+            else:
 
-    return plan
+                plan += next_move
+                cave_map, current_cell = move(cave_map, next_move, current_cell, portal_coor, "plan")
+                res = check_cave(cave_map)
+        return plan
+
+    elif type(current_cell) == list:
+        x = current_cell[0].split(",")
+        current_cell.pop(0)
+        first_start = {"row": int(x[0]), "col": int(x[1])}
+        temp_cave_map = [x[:] for x in cave_map]
+        temp_cave_map[first_start["row"]][first_start["col"]] = "S"
+        plan = find_plan(cave_map=temp_cave_map, portal_coor=portal_coor, plan="")
+        for possible_start in current_cell:
+            print(possible_start)
+            x = possible_start.split(",")
+            possible_current_cell = {"row": int(x[0]), "col": int(x[1])}
+            temp_cave_map = [x[:] for x in cave_map]
+            temp_cave_map[possible_current_cell["row"]][possible_current_cell["col"]] = "S"
+            res, last_cell = check_plan(plan=plan, cave_map=temp_cave_map, portal_coor=portal_coor)
+            if res:
+                plan = find_plan(cave_map=temp_cave_map, portal_coor=portal_coor, plan=plan,current_cell=last_cell)
+            print(plan)
+        return plan
 
 
 raw_data = {}
-for letter in 'abcde':
+for letter in 'abcdef':
     for number in range(20):
         path = f"example-problems/problem_{letter}_{number:02d}.txt"
 
@@ -280,6 +296,29 @@ for letter in 'abcde':
 
             elif split_data[0] == "FIND PLAN":
                 plan = find_plan(split_data)
-                print(plan)
                 with open(f"my-example-solutions/solution_{letter}_{number:02d}.txt", "w+") as text_file:
                     text_file.write(plan)
+#
+# for letter in 'abcdef':
+#     for number in range(20):
+#         path = f"problems/problem_{letter}_{number:02d}.txt"
+#
+#         with open(path) as fp:
+#             raw_data[path] = fp.read()
+#             split_data = raw_data[path].split("\n")
+#             if split_data[0] == "CHECK PLAN":
+#                 result = check_plan(split_data)
+#                 if len(result) == 0:
+#                     with open(f"solutions/solution_{letter}_{number:02d}.txt", "w+") as text_file:
+#                         text_file.write("GOOD PLAN")
+#                 else:
+#                     with open(f"solutions/solution_{letter}_{number:02d}.txt", "w+") as text_file:
+#                         text_file.write("BAD PLAN\n\n")
+#                         for coor in result:
+#                             x = coor.split(",")
+#                             text_file.write(x[1] + ", " + x[0] + "\n")
+#
+#             elif split_data[0] == "FIND PLAN":
+#                 plan = find_plan(split_data)
+#                 with open(f"solutions/solution_{letter}_{number:02d}.txt", "w+") as text_file:
+#                     text_file.write(plan)
