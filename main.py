@@ -35,7 +35,6 @@ def create_map(data):
 
 def find_start(cave_map):
     possible_starts = []
-    start_flag = False
     start_cell = {"row": 0,
                   "col": 0}
     for i in range(len(cave_map)):
@@ -46,12 +45,9 @@ def find_start(cave_map):
             elif cell == "S":
                 start_cell["row"] = i
                 start_cell["col"] = j
-                start_flag = True
+                return start_cell
 
-    if start_flag:
-        return start_cell
-    else:
-        return possible_starts
+    return possible_starts
 
 
 def get_neighbors(cave_map, cc):
@@ -269,7 +265,7 @@ def find_plan(data=None, cave_map=None, portal_coor=None, current_cell=None, pla
             temp_cave_map[possible_current_cell["row"]][possible_current_cell["col"]] = "S"
             res, last_cell = check_plan(plan=plan, cave_map=temp_cave_map, portal_coor=portal_coor)
             if res:
-                plan = find_plan(cave_map=temp_cave_map, portal_coor=portal_coor, plan=plan,current_cell=last_cell)
+                plan = find_plan(cave_map=temp_cave_map, portal_coor=portal_coor, plan=plan, current_cell=last_cell)
             print(plan)
         return plan
 
