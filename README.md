@@ -1,8 +1,6 @@
 # Repository for AI Project 1.0
 
-**Topic:** Clean the Monster Cave
-
-**Link to Assignment [Here](https://kwarc.info/teaching/AISysProj/SS24/assignment-1.0.A.pdf) ** 
+**Topic:** [Clean the Monster Cave](https://kwarc.info/teaching/AISysProj/SS24/assignment-1.0.A.pdf)
 ## Dependencies
 
 My code is written with Python 3.11, but it would probably work on older versions too. I have not used any external
