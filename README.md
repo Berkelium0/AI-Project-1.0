@@ -1,7 +1,8 @@
-# Repository for ss24.1.0.a/ry68fesa-1
+# Repository for AI Project 1.0
 
-**Topic:** SS24 Assignment 1.0.A (Warm-up): Clean the Wumpus Cave
+**Topic:** Clean the Monster Cave
 
+**Link to Assignment:** https://kwarc.info/teaching/AISysProj/SS24/assignment-1.0.A.pdf
 ## Dependencies
 
 My code is written with Python 3.11, but it would probably work on older versions too. I have not used any external
@@ -25,7 +26,7 @@ the `verify.py` script, so it should be familiar.
 
 ## The Problem
 
-In this assignment, the task is to clean a Wumpus cave using a vacuum cleaner robot controlled by a sequence of
+In this assignment, the task is to clean a monster cave using a vacuum cleaner robot controlled by a sequence of
 instructions. The cave is represented as a grid of squares, where walls are marked with 'X', empty squares with spaces,
 the starting position of the vacuum cleaner with 'S', and portals with 'P'. The instructions include moving the vacuum
 cleaner north, south, east, or west. The challenge is to ensure that the entire cave is cleaned, accounting for walls
@@ -66,7 +67,7 @@ the solution. If not, "BAD PLAN" is written with the empty cells.
 
 ### Problem b
 
-Problem b introduces portals to the wumpus map. To keep track of this, I added a check to the `create_map` function
+Problem b introduces portals to the monster map. To keep track of this, I added a check to the `create_map` function
 where it also returns the coordinates of the portals, if they exist.
 
 Next, I updated the `move` function so that it checks if the current location of the vacuum is a portal and calls
